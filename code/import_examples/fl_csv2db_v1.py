@@ -1,3 +1,5 @@
+#set database password as needed below
+
 #from glob import glob
 import sys
 

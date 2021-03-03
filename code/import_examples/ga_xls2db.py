@@ -1,9 +1,16 @@
+'''
+Requirements:
+    openpyxl - Unfortunately the xlrd library doesn't handle xlsx files, but openpyxl does.
+
+Command line:
+    python ga_xls2db.py --ExcelFile=<path to the datafile>
+
+'''
 import sys
 import optparse
 import traceback
 from datetime import datetime
 from openpyxl import load_workbook
-from openpyxl import Workbook
 
 
 class Sample:

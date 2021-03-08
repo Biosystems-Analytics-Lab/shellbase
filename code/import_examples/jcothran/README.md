@@ -13,5 +13,11 @@ The below file is a demo query file which runs the below query to produce a csv 
 
 https://github.com/Biosystems-Analytics-Lab/shellbase/blob/main/code/import_examples/jcothran/fl_csv2db_kml.py
 
+query = """select sample_datetime,areas.name,stations.id,stations.name,stations.lat,stations.long,value
+  from samples,stations,areas
+  where stations.id = samples.station_id
+    and areas.id = stations.area_id
+    and type = 1 and value > 100 order by sample_datetime;"""
+
 https://github.com/Biosystems-Analytics-Lab/shellbase/blob/main/code/import_examples/jcothran/shellbase_demo_query1.csv
 https://github.com/Biosystems-Analytics-Lab/shellbase/blob/main/code/import_examples/jcothran/shellbase_demo_query1.kml

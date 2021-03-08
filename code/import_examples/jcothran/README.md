@@ -1,5 +1,9 @@
 3 script passes on the csv file in their data dependency order where areas->stations->samples .
 
+Each of the below 3 scripts uses parameters like below, where subfolder is the name of a subfolder containing related csv files to be processed and pg_password is the postgres password for the associated user(postgres).
+
+python fl_csv2db_areas.py <subfolder> <pg_password>
+
 #insert areas
 https://github.com/Biosystems-Analytics-Lab/shellbase/blob/main/code/import_examples/jcothran/fl_csv2db_areas.py
 

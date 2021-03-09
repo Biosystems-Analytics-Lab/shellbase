@@ -120,8 +120,8 @@ for (i in 1:length(file_names)){
     
     # add columns of conditional sampling, growing area, and original file name
     dat <- dat %>%
+      add_column(monitoring_type = rep("conditional", times=nrow(dat)), .before = "station_no_2018") %>%
       add_column(grow_area = rep(grow_area[i], times=nrow(dat)), .before = "station_no_2018") %>%
-      separate(col = grow_area, into = c("monitoring_type", "grow_area"), sep = "_") %>%
       add_column(file_name = rep(file_names[i], times=nrow(dat)), .after = "fib_conc") %>%
       rename("station" = "STATION", "number" = "NO.")
     
@@ -139,3 +139,33 @@ for (i in 1:length(file_names)){
 } # end read-in loop
 
 
+### explore fc data ----
+str(conditional)
+summary(conditional)
+
+# see rows with NAs for `date` column
+conditional[is.na(conditional$date),]
+
+# see rows with NAs for `fib_conc` column
+conditional[is.na(conditional$fib_conc),]
+
+
+### clean conditional data ----
+conditional_clean <- conditional %>%
+  dplyr::filter(date >= 1993-01-07) %>%
+  add_column(tide = rep(NA), .before = "fib_conc") %>%
+  add_column(salinity = rep(NA), .before = "fib_conc") %>%
+  add_column(temp = rep(NA), .before = "fib_conc") %>%
+  rename(sub_station = number)
+
+# match column data types to routine
+conditional_clean$tide <- as.character(conditional_clean$tide)
+conditional_clean$salinity <- as.numeric(conditional_clean$salinity)
+conditional_clean$temp <- as.numeric(conditional_clean$temp)
+
+# remove NAs in `fib_conc`
+conditional_clean <- conditional_clean[!is.na(conditional_clean$fib_conc), ]
+
+str(conditional_clean)
+summary(conditional_clean)
+view(conditional_clean)

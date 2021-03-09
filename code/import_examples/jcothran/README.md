@@ -47,6 +47,20 @@ select A.sample_datetime,areas.name as area_name,A.station_id,stations.name as s
         
       order by sample_datetime;
 ```
+```
+   sample_datetime   | area_name | station_id | station_name |  fc  | sal | temp
+---------------------+-----------+------------+--------------+------+-----+------
+ 1978-12-05 01:00:00 | 88        |       2391 | 88SHA151     |  240 |     |
+ 1979-01-10 01:00:00 | 16        |        393 | 16SHA250     |  110 |   0 |   10
+ 1979-03-12 01:00:00 | 16        |        395 | 16SHA280     |  240 |   0 | 14.4
+ 1979-05-09 14:34:00 | 70        |       1693 | 70SHA110     |  350 |     |
+ 1979-07-17 11:18:00 | 60        |       1487 | 60SHA020     |  130 |     | 26.6
+ 1979-07-17 11:34:00 | 60        |       1485 | 60SHA010     |  220 |     | 26.6
+ 1979-08-01 12:28:00 | 60        |       1509 | 60SHA162     |  130 |     | 31.1
+ 1979-08-08 12:12:00 | 60        |       1503 | 60SHA110     |  110 |     | 27.2
+ 1979-08-09 10:28:00 | 60        |       1513 | 60SHA164     |  220 |     | 26.6
+ 1979-08-09 10:48:00 | 60        |       1485 | 60SHA010     |  110 |     | 27.2
+```
 
 https://github.com/Biosystems-Analytics-Lab/shellbase/blob/main/code/import_examples/jcothran/shellbase_demo_query1.csv
 https://github.com/Biosystems-Analytics-Lab/shellbase/blob/main/code/import_examples/jcothran/shellbase_demo_query1.kml

@@ -10,13 +10,19 @@ pg_password = sys.argv[1]
 #open the db
 try:
     conn = psycopg2.connect("dbname='shellbase' user='postgres' password='"+pg_password+"'")
-
-except:
-    print ("Failed to open the db.")
     
+except psycopg2.OperationalError as e:
+        print ("Unable to connect!")
+        print (e.pgcode)
+        print (e.pgerror)
+        print (e.diag.message_detail)
+        sys.exit(1)
 
 #Initiate the cursor
 cursor = conn.cursor()
+
+#print datetime.now statements for benchmarking time to complete
+#print ('connected:'+str(datetime.datetime.now().strftime("%H:%M:%S")))
 
 kml_file = open("shellbase_demo_query1.kml", "w")
 query_file = open("shellbase_demo_query1.csv", "w")
@@ -36,17 +42,43 @@ header = """<?xml version="1.0" encoding="UTF-8"?>
 """
 kml_file.write(header)
 
+#multiple joins
+#info on joins https://learnsql.com/blog/how-to-left-join-multiple-tables/
+#select rows where fc > 100 and other associated(same sample_datetime,station_id) measurements ordered by sample_datetime
+  
+query = """select A.sample_datetime,areas.name as area_name,A.station_id,stations.name as station_name,stations.long,stations.lat,A.value as fc,B.value as temp,C.value as sal
+      from samples A
+      
+      left join samples B 
+        on A.sample_datetime = B.sample_datetime
+        and A.station_id = B.station_id
+        and B.type = 2
+      
+      left join samples C 
+        on A.sample_datetime = C.sample_datetime
+        and A.station_id = C.station_id
+        and C.type = 3
+      
+      --add additional left joins here(samples D,...) for other measurement types
+      
+      left join stations
+        on stations.id = A.station_id
 
-query = """select sample_datetime,areas.name,stations.id,stations.name,stations.lat,stations.long,value from samples,stations,areas
-where stations.id = samples.station_id
-  and areas.id = stations.area_id
-and type = 1 and value > 100 order by sample_datetime;"""
+      left join areas
+        on areas.id = stations.area_id
+      
+      where A.type = 1 and A.value > 100
+        
+      order by sample_datetime;"""
+
 
 cursor.execute(query)
 
 result = cursor.fetchall()
 
 query_file.write('sample_datetime,area_name,station_name,station_lat,station_long,fc,temp\n')
+
+#print ('loop start:'+str(datetime.datetime.now().strftime("%H:%M:%S")))
 
 for row in result:
 
@@ -57,34 +89,19 @@ for row in result:
     station_name = row[3]
     station_lat = row[4]
     station_long = row[5]
-    sample_value = row[6]        
+    sample_value_fc = row[6]        
+    sample_value_temp = row[7]  
+    sample_value_sal = row[8]
 
-    #print (sample_datetime,station_name,station_lat,station_long,sample_value)
+    #print (sample_datetime,station_name,station_lat,station_long,sample_value_fc,sample_value_temp)
 
-    query_file_row = str(sample_datetime)+','+area_name+','+station_name+','+str(station_lat)+','+str(station_long)+','+str(sample_value)
-    query_file.write(query_file_row)
-
-    #do cross-lookup for temp(type=3) based on sample row id
-    query = """select value from samples
-    where sample_datetime = '"""+str(sample_datetime)+"""' and station_id = """+str(station_id)+"""
-    and type = 3;"""
-
-    #print (query)
-    cursor.execute(query)
-
-    result = cursor.fetchall()
-
-    temp = ''
-    if result:
-        temp = result[0][0]
-
-    #suffix temp to csv outfile
-    query_file.write(','+str(temp))    
+    query_file_row = str(sample_datetime)+','+area_name+','+station_name+','+str(station_lat)+','+str(station_long)+','+str(sample_value_fc)+','+str(sample_value_temp)+','+str(sample_value_sal)
     query_file.write('\n')
+    query_file.write(query_file_row)
     
     body = """
         <Placemark>
-          <name>fc:"""+str(sample_value)+' temp:'+str(temp)+"""</name>
+          <name>fc:"""+str(sample_value_fc)+' temp:'+str(sample_value_temp)+' sal:'+str(sample_value_sal)+"""</name>
           <description>"""+station_name+' '+str(sample_datetime)+"""</description>
           <TimeStamp>
             <when>"""+str(sample_datetime_kml)+"""</when>
@@ -106,6 +123,7 @@ kml_file.write(footer)
 kml_file.close()
 query_file.close()
 
+#print ('loop end:'+str(datetime.datetime.now().strftime("%H:%M:%S")))
 
 # Close the cursor
 cursor.close()

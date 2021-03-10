@@ -1,7 +1,7 @@
 -- as postgres user
 -- create database shellbase;
 
--- from command line to run below sql against new shellbase
+-- from command line to run below sql against new shellbase, -q for quiet for large insert files
 -- psql -U postgres -d shellbase -f sb_obs.sql
 
 -- psql command line checks
@@ -125,10 +125,10 @@ INSERT INTO lkp_sample_units (id,name,long_name)
     values
     (1,'cfu/100 mL','colony forming units / 100 milliliters'),
     (2,'C','celsius'),
-    (3,'F','fahrenheit'),
-    (4,'ppt','parts per thousand'),
-    (5,'mS/cm','microsiemens per centimeter'),
-    (6,'mg/L','milligrams / liter')
+    (3,'ppt','parts per thousand'),
+    (4,'mS/cm','microsiemens per centimeter'),
+    (5,'mg/L','milligrams / liter'),
+    (6,'F','fahrenheit')
 ;    
 
 --------
@@ -146,7 +146,6 @@ CREATE TABLE areas (
 );
 
 CREATE SEQUENCE areas_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -172,7 +171,6 @@ CREATE TABLE history_areas_closure (
 );
 
 CREATE SEQUENCE history_areas_closure_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -199,7 +197,6 @@ CREATE TABLE history_areas_classification (
 );
 
 CREATE SEQUENCE history_areas_classification_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -228,7 +225,6 @@ CREATE TABLE stations (
 );
 
 CREATE SEQUENCE stations_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -262,7 +258,6 @@ CREATE TABLE samples (
 );
 
 CREATE SEQUENCE samples_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -271,7 +266,18 @@ CREATE SEQUENCE samples_id_seq
 
 ALTER TABLE ONLY samples ALTER COLUMN id SET DEFAULT nextval('samples_id_seq'::regclass);
 
-CREATE UNIQUE INDEX i_samples ON samples USING btree (sample_datetime,station_id);
+CREATE UNIQUE INDEX i_areas ON areas USING btree (state,name);
+CREATE UNIQUE INDEX i_stations ON stations USING btree (area_id,name);
+CREATE UNIQUE INDEX i_samples ON samples USING btree (sample_datetime,station_id,type);
+
+-- reset table sequence id to 1	
+
+-- ALTER SEQUENCE areas_id_seq RESTART WITH 1;
+-- ALTER SEQUENCE stations_id_seq RESTART WITH 1;
+-- ALTER SEQUENCE samples_id_seq RESTART WITH 1;
+
+-- dump tables as inserts
+-- pg_dump -U postgres --column-inserts --data-only --table=areas shellbase > areas_insert.sql	  
 
 
 

@@ -18,6 +18,7 @@ dbListTables(con)
 
 #===================
 #setup SQL INSERT query
+
 #qry <- "INSERT INTO areas (name,state) values ('test1','FL')"
 
 #tryCatch( { dbSendQuery(con, qry) }
@@ -29,6 +30,7 @@ dbListTables(con)
 
 #===================
 #setup SQL SELECT query
+
 qry <- "SELECT * FROM areas"
 
 #query result to dataframe - default method

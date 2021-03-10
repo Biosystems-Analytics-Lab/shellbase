@@ -44,6 +44,7 @@ df[2:3,2:3] #get 2-3rd row, 2-3rd column
 
 #===================
 #query results to chunk to dataframe - secondary method - like paging/buffering where resultset is larger than memory constraints
+
 #res <- dbSendQuery(con, qry)
 #df = dbFetch(res, n = -1) #n = less than zero for all(usual default) or number of rows to return in chunk
 #df[1,2] #get 1st row, 2nd column

@@ -312,6 +312,9 @@ def parse_worksheet(xls_filename, db_conn, growing_areas, stations_csv_file):
                                       .format(row_ndx=row_ndx, area_name=growing_area_record.County))
                                 traceback.print_exc()
                         current_growing_area = growing_area_record.County
+                else:
+                    print("ERROR unable to geo locate station: {station_name} to growing area."\
+                          .format(station_name=sample.station_id))
                 if ga_id:
                     #Check if we already added station.
                     if str(sample.station_id) not in station_recs:

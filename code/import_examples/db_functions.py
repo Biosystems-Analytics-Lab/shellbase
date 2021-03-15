@@ -57,8 +57,8 @@ def reason_id(db_cursor, reason_name):
     sql = "SELECT id FROM lkp_sample_reason WHERE name='%s'"%(reason_name)
     return get_id(db_cursor, sql)
 
-def area_id(db_cursor, state):
-    sql = "SELECT id FROM areas WHERE state='%s'" % (state)
+def area_id(db_cursor, name, state):
+    sql = "SELECT id FROM areas WHERE name='%s' AND state='%s'" % (name, state)
     return get_id(db_cursor, sql)
 
 def add_area(db_cursor, area_name, state):

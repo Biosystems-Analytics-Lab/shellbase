@@ -59,12 +59,14 @@ tide_map = {
 
 def process_data(db_host, db_name, db_user, db_pwd, xl_file, growing_areas, stations_csv_file):
     try:
-        db_conn = psycopg2.connect(host=db_host,
-                                   dbname=db_name,
-                                   user=db_user,
-                                   password=db_pwd)
+        db_conn = database_connect(type='postgres',
+                                   db_host=db_host,
+                                   db_name=db_name,
+                                   db_user=db_user,
+                                   db_pwd=db_pwd)
+        print("Successfully connected to database.")
     except Exception as e:
-        print("Error connecting to database.")
+        print("ERROR connecting to database.")
         traceback.print_exc()
     else:
         try:
@@ -72,6 +74,17 @@ def process_data(db_host, db_name, db_user, db_pwd, xl_file, growing_areas, stat
         except Exception as e:
             traceback.print_exc()
         db_conn.close()
+
+def database_connect(**kwargs):
+    try:
+        if kwargs.get('type', 'postgres') == 'postgres':
+            db_conn = psycopg2.connect(host=kwargs['db_host'],
+                                       dbname=kwargs['db_name'],
+                                       user=kwargs['db_user'],
+                                       password=kwargs['db_pwd'])
+            return db_conn
+    except Exception as e:
+        raise e
 
 
 def get_id(db_cursor, sql):
@@ -89,7 +102,7 @@ def obs_id(db_cursor, obs_name):
     return get_id(db_cursor, sql)
 
 def uom_id(db_cursor, uom_name):
-    sql = "SELECT id FROM lkp_sample_type WHERE name='%s'" % (uom_name)
+    sql = "SELECT id FROM lkp_sample_units WHERE name='%s'" % (uom_name)
     return get_id(db_cursor, sql)
 
 def fc_analysis_method_id(db_cursor, analysis_name):
@@ -107,6 +120,13 @@ def tide_id(db_cursor, tide_name):
 def strategy_id(db_cursor, strategy_name):
     sql = "SELECT id FROM lkp_sample_strategy WHERE name='%s'" % (strategy_name)
     return get_id(db_cursor, sql)
+def add_strategy(db_cursor, strategy_name, description):
+    try:
+        sql = "INSERT INTO lkp_sample_strategy (id,name,description) VALUES(%d,'%s','%s')" % (0,strategy_name, description)
+        db_cursor.execute(sql)
+    except Exception as e:
+        raise e
+    return False
 
 def reason_id(db_cursor, reason_name):
     sql = "SELECT id FROM lkp_sample_reason WHERE name='%s'"%(reason_name)
@@ -175,7 +195,7 @@ def add_station(db_cursor,
     return False
 
 def add_sample(db_cursor,
-               station_id,
+               station_name,
                sample_date,
                date_only,
                obs_type,
@@ -187,37 +207,39 @@ def add_sample(db_cursor,
                fc_analysis_method,
                flag):
     try:
-
+        sta_id = station_id(db_cursor, station_name)
         obs_name_id = obs_id(db_cursor, obs_type)
-        uom_name_id = obs_id(db_cursor, obs_uom)
+        uom_name_id = uom_id(db_cursor, obs_uom)
         tide_name_id = tide_id(db_cursor, tide)
         strategy_name_id = strategy_id(db_cursor, strategy)
         reasonid = reason_id(db_cursor, reason)
-        fc_analysis_method_name_id = fc_analysis_method_id(db_cursor, reason)
+        fc_analysis_method_name_id = fc_analysis_method_id(db_cursor, fc_analysis_method)
 
-        sql = "INSERT INTO samples\
-            (sample_datetime,date_only,station_id,tide,strategy,reason,fc_analysis_method,type,units,flag)\
-            VALUES('%s',%d,%d,%d,%d,%d,%d,%d,%d,%f,'%s')" %\
-              (sample_date)
+        sql = "INSERT INTO samples"\
+            "(sample_datetime,date_only,station_id,tide,strategy,reason,fc_analysis_method,type,units,value,flag)"\
+            "VALUES('%s',%r,%d,%d,%d,%d,%d,%d,%d,%f,'%s')"%\
+              (sample_date, date_only,
+               sta_id,
+               tide_name_id,
+               strategy_name_id,
+               reasonid,
+               fc_analysis_method_name_id,
+               obs_name_id,
+               uom_name_id,
+               obs_value,
+               flag)
+        db_cursor.execute(sql)
+        return True
     except Exception as e:
         raise e
-    return
+    return False
 def get_growing_area(growing_areas, station_loc):
     growing_area = None
-    '''
-    wgs84 = pyproj.Proj(init="epsg:4326")
-    epsg_26917 = pyproj.Proj(init="epsg:26917")
-    project = partial(
-        pyproj.transform,
-        epsg_26917,
-        wgs84)
-    '''
+
     for ndx,shape in enumerate(growing_areas.iterShapes()):
         area_rec = None
-        rec = growing_areas.record(ndx)
         if shape.shapeTypeName.lower() == "polygon":
             growing_area = Polygon(shape.points)
-            #growing_area = transform(project, Polygon(shape.points))
         if growing_area is not None:
             if station_loc.within(growing_area):
                 area_rec = growing_areas.record(ndx)
@@ -234,6 +256,7 @@ def parse_worksheet(xls_filename, db_conn, growing_areas, stations_csv_file):
             try:
                 stations_file = open(stations_csv_file, "w")
                 stations_file.write("Station Name,Longitude,Latitude\n")
+                stations_written = []
             except IOError as e:
                 print("Error opening the stations CSV file: %s" % (stations_csv_file))
                 traceback.print_exc()
@@ -250,17 +273,21 @@ def parse_worksheet(xls_filename, db_conn, growing_areas, stations_csv_file):
 
         station_recs = {}
         db_cursor = db_conn.cursor()
-        db_cursor.execute("SELECT * FROM areas WHERE state='GA';")
-        area_recs = db_cursor.fetchall()
 
-        db_cursor.execute("SELECT name FROM lkp_sample_type;")
-        sample_types = db_cursor.fetchall()
+        db_cursor.execute("SELECT * FROM lkp_fc_analysis_method")
+        fc_analysis_methods = db_cursor.fetchall()
 
-        db_cursor.execute("SELECT name,long_name FROM lkp_sample_units;")
-        sample_units = db_cursor.fetchall()
+        db_cursor.execute("SELECT * FROM lkp_sample_reason")
+        reasons = db_cursor.fetchall()
 
-        area_id = 0
-        row_entry_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        #I assume the strategy and reason are always the same.
+        strategy_type = "systematic random sampling"
+        strategy_type_id = strategy_id(db_cursor, strategy_type)
+        if strategy_type_id is None:
+            add_strategy(db_cursor, strategy_type, "")
+            strategy_type_id = strategy_id(db_cursor, strategy_type)
+        reason = 'routine'
+        fc_analysis_method = '3-tube'
         current_growing_area = None
         ga_id = None
         for row_ndx, data_row in xl_file.iterrows():
@@ -275,6 +302,7 @@ def parse_worksheet(xls_filename, db_conn, growing_areas, stations_csv_file):
                 #We combine the individual date and time columns into a python datetime object.
                 try:
                     sample.sample_datetime = datetime.combine(date, time)
+                    #Sometimes the time comes back as a datetime object and not just a time object.
                 except TypeError as e:
                     try:
                         if type(time) == datetime:
@@ -282,12 +310,13 @@ def parse_worksheet(xls_filename, db_conn, growing_areas, stations_csv_file):
                     except TypeError as e:
                         e
                 except Exception as e:
-                    e
+                    traceback.print_exc()
+
                 sample.latitude = data_row['Latitude']
                 sample.longitude = data_row['Longitude']
                 sample.sample_value = data_row['FecalColiform 100/mL']
                 sample.tube_code = data_row['TubeCode']
-                sample.tide_code = data_row['TideCode']
+                sample.tide_code = tide_map[int(data_row['TideCode'])]
 
                 sample.temperature = data_row['Temp °C']
                 sample.dissolved_oxygen = data_row['DO mg/L']
@@ -295,9 +324,16 @@ def parse_worksheet(xls_filename, db_conn, growing_areas, stations_csv_file):
                 sample.ph = data_row['pH']
                 sample.salinity = data_row['Salinity ppt']
 
+                if stations_file and\
+                    str(sample.station_id) not in stations_written:
+                        stations_file.write(
+                            "{station_name},{longitude},{latitude}\n".format(station_name=sample.station_id,
+                                                                             longitude=sample.longitude,
+                                                                             latitude=sample.latitude))
+                        stations_written.append(str(sample.station_id))
+
                 #Determine the growing area.
                 station_loc = transform(project, Point(sample.longitude, sample.latitude))
-                #station_loc = Point(sample.longitude, sample.latitude)
                 growing_area_record = get_growing_area(growing_areas, station_loc)
                 if growing_area_record is not None:
                     if growing_area_record.County != current_growing_area:
@@ -315,13 +351,9 @@ def parse_worksheet(xls_filename, db_conn, growing_areas, stations_csv_file):
                 else:
                     print("ERROR unable to geo locate station: {station_name} to growing area."\
                           .format(station_name=sample.station_id))
+
                 if ga_id:
                     #Check if we already added station.
-                    if str(sample.station_id) not in station_recs:
-                        if stations_file:
-                            stations_file.write("{station_name},{longitude},{latitude}\n".format(station_name=sample.station_id,
-                                                                                                 longitude=sample.longitude,
-                                                                                                 latitude=sample.latitude))
                         sta_id = station_id(db_cursor, str(sample.station_id))
 
                         if sta_id == None:
@@ -346,7 +378,93 @@ def parse_worksheet(xls_filename, db_conn, growing_areas, stations_csv_file):
                                 traceback.print_exc()
                         if sta_id:
                             station_recs[str(sample.station_id)] = sta_id
+                flag = 0
+                #Add the samples.
+                try:
+                    add_sample(db_cursor,
+                               sample.station_id,
+                               sample.sample_datetime, False,
+                               'temperature', "C", sample.temperature,
+                               sample.tide_code,
+                               strategy_type,
+                               reason,
+                               fc_analysis_method,
+                               flag)
+                except Exception as e:
+                    print("ERROR adding temperature record row: {row_ndx} datetime: {sample_datetime}"\
+                          .format(row_ndx=row_ndx, sample_datetime=sample.sample_datetime))
+                    traceback.print_exc()
 
+                try:
+                    add_sample(db_cursor,
+                               sample.station_id,
+                               sample.sample_datetime, False,
+                               'dissolved oxygen', 'mg/L', sample.dissolved_oxygen,
+                               sample.tide_code,
+                               strategy_type,
+                               reason,
+                               fc_analysis_method,
+                               flag)
+                except Exception as e:
+                    print("ERROR adding DO record row: {row_ndx} datetime: {sample_datetime}"\
+                          .format(row_ndx=row_ndx, sample_datetime=sample.sample_datetime))
+                    traceback.print_exc()
+                try:
+                    add_sample(db_cursor,
+                               sample.station_id,
+                               sample.sample_datetime, False,
+                               'salinity', 'ppt', sample.salinity,
+                               sample.tide_code,
+                               strategy_type,
+                               reason,
+                               fc_analysis_method,
+                               flag)
+                except Exception as e:
+                    print("ERROR adding salinity record row: {row_ndx} datetime: {sample_datetime}"\
+                          .format(row_ndx=row_ndx, sample_datetime=sample.sample_datetime))
+                    traceback.print_exc()
+                try:
+                    add_sample(db_cursor,
+                               sample.station_id,
+                               sample.sample_datetime, False,
+                               'conductivity', 'mS/cm', sample.conductivity,
+                               sample.tide_code,
+                               strategy_type,
+                               reason,
+                               fc_analysis_method,
+                               flag)
+                except Exception as e:
+                    print("ERROR adding conductivity record row: {row_ndx} datetime: {sample_datetime}"\
+                          .format(row_ndx=row_ndx, sample_datetime=sample.sample_datetime))
+                    traceback.print_exc()
+                try:
+                    add_sample(db_cursor,
+                               sample.station_id,
+                               sample.sample_datetime, False,
+                               'ph', '', sample.ph,
+                               sample.tide_code,
+                               strategy_type,
+                               reason,
+                               fc_analysis_method,
+                               flag)
+                except Exception as e:
+                    print("ERROR adding ph record row: {row_ndx} datetime: {sample_datetime}"\
+                          .format(row_ndx=row_ndx, sample_datetime=sample.sample_datetime))
+                    traceback.print_exc()
+                try:
+                    add_sample(db_cursor,
+                               sample.station_id,
+                               sample.sample_datetime, False,
+                               'fc', 'cfu/100 mL', sample.sample_value,
+                               sample.tide_code,
+                               strategy_type,
+                               reason,
+                               fc_analysis_method,
+                               flag)
+                except Exception as e:
+                    print("ERROR adding fecal coliform record row: {row_ndx} datetime: {sample_datetime}" \
+                          .format(row_ndx=row_ndx, sample_datetime=sample.sample_datetime))
+                    traceback.print_exc()
             except Exception as e:
                 print("Error on row: %d" % (row_ndx))
                 traceback.print_exc()

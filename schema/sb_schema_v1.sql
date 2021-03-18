@@ -106,11 +106,13 @@ CREATE TABLE lkp_sample_type (
 INSERT INTO lkp_sample_type (id,name)
     values
     (1,'fc'),
-    (2,'temperature'),
+    (2,'water temperature'),
     (3,'salinity'),
     (4,'conductivity'),
     (5,'dissolved oxygen'),
-    (6,'ph');    
+    (6,'ph'),
+    (7,'wind direction'),
+    (8,'air temperature');
 
 --------
 --------
@@ -128,8 +130,9 @@ INSERT INTO lkp_sample_units (id,name,long_name)
     (3,'ppt','parts per thousand'),
     (4,'mS/cm','microsiemens per centimeter'),
     (5,'mg/L','milligrams / liter'),
-    (6,'F','fahrenheit')
-;    
+    (6,'F','fahrenheit'),
+    (7,'degrees','degrees from north')
+;
 
 --------
 --------

@@ -41,6 +41,7 @@ CREATE TABLE lkp_tide (
 
 INSERT INTO lkp_tide (id,name)
     values
+    (-1, 'unknown'),
     (1,'high'),
     (2,'flood 3/4'),
     (3,'ebb 1/4'),

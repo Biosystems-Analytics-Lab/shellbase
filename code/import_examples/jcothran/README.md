@@ -64,3 +64,51 @@ select A.sample_datetime,areas.name as area_name,A.station_id,stations.name as s
 
 https://github.com/Biosystems-Analytics-Lab/shellbase/blob/main/code/import_examples/jcothran/shellbase_demo_query1.csv
 https://github.com/Biosystems-Analytics-Lab/shellbase/blob/main/code/import_examples/jcothran/shellbase_demo_query1.kml
+
+Below is also the complex query with all current joins for current observation types(6 total) in a 'samples_wide' table format which presents the disjointed table information in an easier to read 'wide' format, allowing subsequent queries on the samples_wide table to be much simpler and understandable.
+
+```sql
+CREATE VIEW samples_wide AS 
+
+select A.sample_datetime,areas.name as area_name,A.station_id,stations.name as station_name,A.value as fc,B.value as temp,C.value as sal,D.value as cond,E.value as do,F.value as ph
+      from samples A
+      
+      left join samples B 
+        on A.sample_datetime = B.sample_datetime
+        and A.station_id = B.station_id
+        and B.type = 2
+      
+      left join samples C 
+        on A.sample_datetime = C.sample_datetime
+        and A.station_id = C.station_id
+        and C.type = 3
+
+      left join samples D 
+        on A.sample_datetime = D.sample_datetime
+        and A.station_id = D.station_id
+        and D.type = 4
+
+      left join samples E 
+        on A.sample_datetime = E.sample_datetime
+        and A.station_id = E.station_id
+        and E.type = 5
+
+      left join samples F 
+        on A.sample_datetime = F.sample_datetime
+        and A.station_id = F.station_id
+        and F.type = 6
+      
+      --add additional left joins here(samples G,...) for other measurement types
+      
+      --join our other main tables stations and areas - areas->stations->samples
+
+      left join stations
+        on stations.id = A.station_id
+
+      left join areas
+        on areas.id = stations.area_id
+      
+      where A.type = 1
+        
+      order by sample_datetime;
+```

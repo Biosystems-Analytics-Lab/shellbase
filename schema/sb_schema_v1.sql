@@ -274,6 +274,54 @@ CREATE UNIQUE INDEX i_areas ON areas USING btree (state,name);
 CREATE UNIQUE INDEX i_stations ON stations USING btree (area_id,name);
 CREATE UNIQUE INDEX i_samples ON samples USING btree (sample_datetime,station_id,type);
 
+-- samples_wide view(6 current observation types, but can be extended with additional joins as needed for new observations types) allows for a much simpler query for related sample observations
+-- for example
+-- select * from samples_wide where fc > 100 limit 10;
+
+CREATE VIEW samples_wide AS 
+
+select A.sample_datetime,areas.name as area_name,A.station_id,stations.name as station_name,A.value as fc,B.value as temp,C.value as sal,D.value as cond,E.value as do,F.value as ph
+      from samples A
+      
+      left join samples B 
+        on A.sample_datetime = B.sample_datetime
+        and A.station_id = B.station_id
+        and B.type = 2
+      
+      left join samples C 
+        on A.sample_datetime = C.sample_datetime
+        and A.station_id = C.station_id
+        and C.type = 3
+
+      left join samples D 
+        on A.sample_datetime = D.sample_datetime
+        and A.station_id = D.station_id
+        and D.type = 4
+
+      left join samples E 
+        on A.sample_datetime = E.sample_datetime
+        and A.station_id = E.station_id
+        and E.type = 5
+
+      left join samples F 
+        on A.sample_datetime = F.sample_datetime
+        and A.station_id = F.station_id
+        and F.type = 6
+      
+      --add additional left joins here(samples G,...) for other measurement types
+      
+      --join our other main tables stations and areas - areas->stations->samples
+
+      left join stations
+        on stations.id = A.station_id
+
+      left join areas
+        on areas.id = stations.area_id
+      
+      where A.type = 1
+        
+      order by sample_datetime;
+
 -- reset table sequence id to 1	
 
 -- ALTER SEQUENCE areas_id_seq RESTART WITH 1;

@@ -65,7 +65,7 @@ select A.sample_datetime,areas.name as area_name,A.station_id,stations.name as s
 https://github.com/Biosystems-Analytics-Lab/shellbase/blob/main/code/import_examples/jcothran/shellbase_demo_query1.csv
 https://github.com/Biosystems-Analytics-Lab/shellbase/blob/main/code/import_examples/jcothran/shellbase_demo_query1.kml
 
-Below is also the complex query with all current joins for current observation types(6 total) in a 'samples_wide' table format which presents the disjointed table information in an easier to read 'wide' format, allowing subsequent queries on the samples_wide table to be much simpler and understandable.
+Below is also the complex query with all current joins for current observation types(6 total) in a 'samples_wide' view which presents the disjointed table information in an easier to read 'wide' format, allowing subsequent queries on the samples_wide view to be much simpler and understandable.
 
 ```sql
 CREATE VIEW samples_wide AS 
@@ -111,4 +111,22 @@ select A.sample_datetime,areas.name as area_name,A.station_id,stations.name as s
       where A.type = 1
         
       order by sample_datetime;
+```
+much simpler to create and read query on sample_wide view, producing the same 'wide' format resultset as earlier
+```sql
+select * from samples_wide where fc > 100 limit 10;
+```
+
+```
+"sample_datetime","area_name","station_id","station_name","fc","temp","sal","cond","do","ph"
+"1978-12-05 01:00:00","88",2391,"88SHA151","240","","","","",""
+"1979-01-10 01:00:00","16",393,"16SHA250","110","0","10","","",""
+"1979-03-12 01:00:00","16",395,"16SHA280","240","0","14.4","","",""
+"1979-05-09 14:34:00","70",1693,"70SHA110","350","","","","",""
+"1979-07-17 11:18:00","60",1487,"60SHA020","130","","26.6","","",""
+"1979-07-17 11:34:00","60",1485,"60SHA010","220","","26.6","","",""
+"1979-08-01 12:28:00","60",1509,"60SHA162","130","","31.1","","",""
+"1979-08-08 12:12:00","60",1503,"60SHA110","110","","27.2","","",""
+"1979-08-09 10:28:00","60",1513,"60SHA164","220","","26.6","","",""
+"1979-08-09 10:48:00","60",1485,"60SHA010","110","","27.2","","",""
 ```

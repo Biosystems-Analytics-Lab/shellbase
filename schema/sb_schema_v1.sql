@@ -29,7 +29,8 @@ INSERT INTO lkp_area_classification (id,name)
     (2,'conditionally approved'),
     (3,'restricted'),
     (4,'prohibited'),
-    (5,'unknown');
+    (5,'unknown'),
+    (6,'conditionally restricted');
 
 --------
 --------

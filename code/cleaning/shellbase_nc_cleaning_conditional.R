@@ -5,7 +5,7 @@
 
 # author: Megan Carr
 # date created: 2021/02/08
-# date last edited: 2021/03/02
+# date last edited: 2021/04/05
 
 
 ### workspace set-up ----
@@ -26,7 +26,9 @@ library(purrr)
 # user defined functions ----
 
 # reads all sheets in an excel file into R as tibble(s)
-read_excel_allsheets <- function(path, tibble = TRUE){
+read_excel_allsheets <- function(path,
+                                 tibble = TRUE,
+                                 col_types = c(col_character(), col_character(), col_character())){
   sheets <- readxl::excel_sheets(path)
   sheet_count <- 1:length(sheets)
   
@@ -95,13 +97,13 @@ for (i in 1:length(file_names)){
     # rename or add station name in 2018, depending on if the column exists
     # whether the column exists varies between sheets in one excel file
     if ("2018 Sta. #" %in% colnames(dat)) {
-      dat <- dat %>% rename("station_no_2018" = "2018 Sta. #")
+      dat <- dat %>% rename("alternative_station_name" = "2018 Sta. #")
     } else if ("New Station" %in% colnames(dat)) {
-      dat <- dat %>% rename("station_no_2018" = "New Station")
+      dat <- dat %>% rename("alternative_station_name" = "New Station")
     } else if ("NEW STATION" %in% colnames(dat)) {
-      dat <- dat %>% rename("station_no_2018" = "NEW STATION")
+      dat <- dat %>% rename("alternative_station_name" = "NEW STATION")
     } else {
-      dat <- dat %>% add_column("station_no_2018" = rep(NA), .before = colnames(dat)[1])
+      dat <- dat %>% add_column("alternative_station_name" = rep(NA), .before = colnames(dat)[1])
     }
     
     # pivot data longer  
@@ -120,8 +122,8 @@ for (i in 1:length(file_names)){
     
     # add columns of conditional sampling, growing area, and original file name
     dat <- dat %>%
-      add_column(monitoring_type = rep("conditional", times=nrow(dat)), .before = "station_no_2018") %>%
-      add_column(grow_area = rep(grow_area[i], times=nrow(dat)), .before = "station_no_2018") %>%
+      add_column(monitoring_type = rep("conditional", times=nrow(dat)), .before = "alternative_station_name") %>%
+      add_column(grow_area = rep(grow_area[i], times=nrow(dat)), .before = "alternative_station_name") %>%
       add_column(file_name = rep(file_names[i], times=nrow(dat)), .after = "fib_conc") %>%
       rename("station" = "STATION", "number" = "NO.")
     
@@ -168,4 +170,6 @@ conditional_clean <- conditional_clean[!is.na(conditional_clean$fib_conc), ]
 
 str(conditional_clean)
 summary(conditional_clean)
-view(conditional_clean)
+
+# check to see if any values are missing for stations variable
+conditional_clean %>% filter(is.na(station))

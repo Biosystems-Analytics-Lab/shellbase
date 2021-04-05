@@ -5,7 +5,7 @@
 
 # author: Megan Carr
 # date created: 2021/02/08
-# date last edited: 2021/03/01
+# date last edited: 2021/04/05
 
 
 ### workspace set-up ----
@@ -80,8 +80,8 @@ routine_clean <- routine %>%
 routine_clean <- routine_clean[!is.na(routine_clean$fib_conc), ]
 
 # match columns to conditional
-routine_clean <- routine_clean %>% add_column(station_no_2018 = rep(NA), .after = "grow_area")
-routine_clean$station_no_2018 <- as.character(routine_clean$station_no_2018)
+routine_clean <- routine_clean %>% add_column(alternative_station_name = rep(NA), .after = "grow_area")
+routine_clean$alternative_station_name <- as.character(routine_clean$alternative_station_name)
 routine_clean$station <- as.character(routine_clean$station)
 
 # see final routine df

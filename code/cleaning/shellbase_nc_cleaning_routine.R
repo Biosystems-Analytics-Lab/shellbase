@@ -5,7 +5,7 @@
 
 # author: Megan Carr
 # date created: 2021/02/08
-# date last edited: 2021/03/01
+# date last edited: 2021/04/05
 
 
 ### workspace set-up ----
@@ -35,7 +35,7 @@ file_path <- paste0(folder_path,file_names)
 # read-in loop
 for (i in 1:length(file_names)){  
   dat_raw <- read_excel(file_path[i], sheet=1) %>%
-    add_column(original_file = file_names[i]) %>%
+    add_column(file_name = file_names[i]) %>%
     clean_names
   dat_name <- gsub(".xlsx","",file_names[i]) 
   assign(dat_name, dat_raw)
@@ -67,12 +67,25 @@ routine %>%
 ### clean fc data ----
 
 # remove `id` column, arrange in ascending order of `samp_date`, and add column for monitoring type
-routine <- routine %>%
+routine_clean <- routine %>%
   select(-(id)) %>%
+  select(-(sta_code:station_id)) %>%
+  select(-(comments)) %>%
   arrange(samp_date) %>%
-  add_column(monitoring_type = rep("routine", times=nrow(routine)), .before = "grow_area")
+  add_column(monitoring_type = rep("routine", times=nrow(routine)), .before = "grow_area") %>%
+  rename(date = samp_date,
+         fib_conc = fc)
 
-routine <- routine[!is.na(routine$fc), ] # remove NAs in `fc`
+# remove NAs in `fib_conc`
+routine_clean <- routine_clean[!is.na(routine_clean$fib_conc), ]
 
-### clean spatial data
+# match columns to conditional
+routine_clean <- routine_clean %>% add_column(alternative_station_name = rep(NA), .after = "grow_area")
+routine_clean$alternative_station_name <- as.character(routine_clean$alternative_station_name)
+routine_clean$station <- as.character(routine_clean$station)
+
+# see final routine df
+str(routine_clean)
+
+### clean spatial data ----
 stations <- STATIONS

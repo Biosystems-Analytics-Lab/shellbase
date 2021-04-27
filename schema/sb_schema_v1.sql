@@ -225,7 +225,9 @@ CREATE TABLE stations (
     long double precision,
     
     sample_depth_type char(2),
-    sample_depth double precision
+    sample_depth double precision,
+
+    active boolean
     
 );
 

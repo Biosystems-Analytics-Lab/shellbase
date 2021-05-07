@@ -23,8 +23,7 @@ CREATE TABLE lkp_area_classification (
     name varchar(50)
 );
 
-INSERT INTO lkp_area_classification (id,name)
-    values
+INSERT INTO lkp_area_classification (id,name) values
     (1,'approved'),
     (2,'conditionally approved'),
     (3,'restricted'),
@@ -40,24 +39,78 @@ CREATE TABLE lkp_tide (
     name varchar(50)
 );
 
-INSERT INTO lkp_tide (id,name)
-    values
-    (-1, 'unknown'),
-    (1,'high'),
-    (2,'flood 3/4'),
-    (3,'ebb 1/4'),
-    (4,'flood 1/2'),
-    (5,'ebb 1/2'),
-    (6,'flood 1/4'),
-    (7,'low'),
-    (8,'ebb 3/4'),
-    (9,'first flood'),
-    (10,'last flood'),
-    (11,'first ebb'),
-    (12,'last ebb'),
-    (13,'wind'),
-    (14,'wind avg'),    
-    (15,'wind above avg');
+INSERT INTO lkp_tide(id,name) values
+ (-1,'UNKNOWN'),
+ (1,'HIGH'),
+ (2,'3/4 FLD'),
+ (3,'1/4 EBB'),
+ (4,'1/2 FLD'),
+ (5,'1/2 EBB'),
+ (6,'1/4 FLD'),
+ (7,'LOW'),
+ (8,'3/4 EBB'),
+ (9,'1/2 - 3/4 FLD'),
+ (10,'1/2 EBB - 2/3 EBB'),
+ (11,'1/2 EBB - 3/4 EBB'),
+ (12,'1/2 FLD - 2/3 FLD'),
+ (13,'1/2 FLD - 3/4 FLD'),
+ (14,'1/3 EBB'),
+ (15,'1/3 EBB - 1/2 EBB'),
+ (16,'1/3 EBB - 2/3 EBB'),
+ (17,'1/3 FLD'),
+ (18,'1/3 FLD - 1/2 FLD'),
+ (19,'1/3 FLD - 2/3 FLD'),
+ (20,'1/3 FLD - 3/4 FLD'),
+ (21,'1/4 - 1/2 EBB'),
+ (22,'1/4 - 1/3 FLD'),
+ (23,'1/4 EBB - 1/2 EBB'),
+ (24,'1/4 EBB - 1/3 EBB'),
+ (25,'1/4 EBB - WIND'),
+ (26,'1/4 FLD - 1/2 FLD'),
+ (27,'1/4 FLD - 1/3 FLD'),
+ (28,'1ST EBB'),
+ (29,'1ST EBB - 1/3 EBB'),
+ (30,'1ST EBB - 1/4 EBB'),
+ (31,'1ST FLD'),
+ (32,'1ST FLD - 1/4 FLD'),
+ (33,'2/3 EBB'),
+ (34,'2/3 EBB - 3/4 EBB'),
+ (35,'2/3 FLD'),
+ (36,'2/3 FLD - 1/3 EBB'),
+ (37,'2/3 FLD - 3/4 FLD'),
+ (38,'2/3 FLD - LAST FLD'),
+ (39,'3/4 - LAST EBB'),
+ (40,'3/4 - LAST FLD'),
+ (41,'3/4 EBB - LAST EBB'),
+ (42,'3/4 FLD - 1ST EBB'),
+ (43,'3/4 FLD - LAST FLD'),
+ (44,'AVG'),
+ (45,'EBB'),
+ (46,'EBB - 1ST FLD'),
+ (47,'FALLING'),
+ (48,'FLD'),
+ (49,'HIGH SLACK'),
+ (50,'LAST EBB'),
+ (51,'LAST EBB - 1ST FLD'),
+ (52,'LAST EBB - 3/4 EBB'),
+ (53,'LAST EBB - LOW'),
+ (54,'LAST FLD'),
+ (55,'LAST FLD - 1ST EBB'),
+ (56,'LOW SLACK'),
+ (57,'MID'),
+ (58,'MID EBB'),
+ (59,'MID FLD'),
+ (60,'N/R'),
+ (61,'SLACK'),
+ (62,'SLACK EBB'),
+ (63,'SLACK FLD'),
+ (64,'VERY LOW'),
+ (65,'WIND'),
+ (66,'WIND ABOVE AVG'),
+ (67,'WIND AVG'),
+ (68,'WIND BELOW AVG'),
+ (69,'WIND HIGH'),
+ (70,'WIND LOW');
 
 --------
 --------
@@ -105,8 +158,7 @@ CREATE TABLE lkp_sample_type (
     name varchar(50)
 );
 
-INSERT INTO lkp_sample_type (id,name)
-    values
+INSERT INTO lkp_sample_type (id,name) values
     (1,'fc'),
     (2,'water temperature'),
     (3,'salinity'),
@@ -125,8 +177,7 @@ CREATE TABLE lkp_sample_units (
     long_name varchar(100)
 );
 
-INSERT INTO lkp_sample_units (id,name,long_name)
-    values
+INSERT INTO lkp_sample_units (id,name,long_name) values
     (1,'cfu/100 mL','colony forming units / 100 milliliters'),
     (2,'C','celsius'),
     (3,'ppt','parts per thousand'),
@@ -283,7 +334,7 @@ CREATE UNIQUE INDEX i_samples ON samples USING btree (sample_datetime,station_id
 
 CREATE VIEW samples_wide AS 
 
-select A.sample_datetime,areas.name as area_name,A.station_id,stations.name as station_name,A.value as fc,B.value as temp,C.value as sal,D.value as cond,E.value as do,F.value as ph
+select A.sample_datetime,areas.name as area_name,A.station_id,stations.name as station_name,stations.state as station_state,A.value as fc,B.value as temp,C.value as sal,D.value as cond,E.value as do,F.value as ph
       from samples A
       
       left join samples B 

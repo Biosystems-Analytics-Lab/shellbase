@@ -1,4 +1,8 @@
 import psycopg2
+from shapely.geometry import Polygon
+import traceback
+from multiprocessing import Process, Queue, Event
+import time
 
 def database_connect(**kwargs):
     try:
@@ -106,13 +110,14 @@ def add_station(db_cursor,
                 station_name,
                 state,area_id,
                 longitude, latitude,
-                sample_depth, sample_depth_type):
+                sample_depth, sample_depth_type,
+                active):
     try:
         print("Adding Station: %s State: %s lon: %f lat: %f" % (station_name, state, longitude, latitude))
         sql = "INSERT INTO stations\
-            (name, state, area_id, lat, long, sample_depth_type, sample_depth)\
-            VALUES('%s','%s',%d,%f,%f,'%s',%f)" % \
-              (station_name, state, area_id, latitude, longitude, sample_depth_type, sample_depth)
+            (name, state, area_id, lat, long, sample_depth_type, sample_depth,active)\
+            VALUES('%s','%s',%d,%f,%f,'%s',%f,%r)" % \
+              (station_name, state, area_id, latitude, longitude, sample_depth_type, sample_depth,active)
         db_cursor.execute(sql)
         return True
     except Exception as e:
@@ -130,7 +135,8 @@ def add_sample(db_cursor,
                strategy,
                reason,
                fc_analysis_method,
-               flag):
+               flag,
+               sql_file=None):
     try:
         sta_id = station_id(db_cursor, station_name)
         obs_name_id = obs_id(db_cursor, obs_type)
@@ -139,7 +145,27 @@ def add_sample(db_cursor,
         strategy_name_id = strategy_id(db_cursor, strategy)
         reasonid = reason_id(db_cursor, reason)
         fc_analysis_method_name_id = fc_analysis_method_id(db_cursor, fc_analysis_method)
+        if uom_name_id is None:
+            uom_name_id = 'NULL'
+        if tide_name_id is None:
+            tide_name_id = 'NULL'
+        sql = "INSERT INTO samples"\
+            "(sample_datetime,date_only,station_id,tide,strategy,reason,fc_analysis_method,type,units,value,flag)"\
+            "VALUES('{sample_date}',{date_only},{sta_id},{tide_name_id},{strategy_name_id},{reasonid}," \
+              "{fc_analysis_method_name_id},{obs_name_id},{uom_name_id},{obs_value},'{flag}');".format(
+                sample_date=sample_date,
+                date_only=date_only,
+               sta_id=sta_id,
+               tide_name_id=tide_name_id,
+               strategy_name_id=strategy_name_id,
+               reasonid=reasonid,
+               fc_analysis_method_name_id=fc_analysis_method_name_id,
+               obs_name_id=obs_name_id,
+               uom_name_id=uom_name_id,
+               obs_value=obs_value,
+               flag=flag)
 
+        '''
         sql = "INSERT INTO samples"\
             "(sample_datetime,date_only,station_id,tide,strategy,reason,fc_analysis_method,type,units,value,flag)"\
             "VALUES('%s',%r,%d,%d,%d,%d,%d,%d,%d,%f,'%s')"%\
@@ -153,11 +179,61 @@ def add_sample(db_cursor,
                uom_name_id,
                obs_value,
                flag)
-        db_cursor.execute(sql)
+        '''
+        if sql_file is None:
+            db_cursor.execute(sql)
+        else:
+            sql_file.write(sql)
+            sql_file.write('\n')
         return True
     except Exception as e:
         raise e
     return False
+
+def add_sample_with_ids(db_cursor,
+               sta_id,
+               sample_date,
+               date_only,
+               obs_name_id,
+               uom_name_id,
+               obs_value,
+               tide_name_id,
+               strategy_name_id,
+               reasonid,
+               fc_analysis_method_name_id,
+               flag,
+               sql_file=None):
+    try:
+        if uom_name_id is None:
+            uom_name_id = 'NULL'
+        if tide_name_id is None:
+            tide_name_id = 'NULL'
+        sql = "INSERT INTO samples"\
+            "(sample_datetime,date_only,station_id,tide,strategy,reason,fc_analysis_method,type,units,value,flag)"\
+            "VALUES('{sample_date}',{date_only},{sta_id},{tide_name_id},{strategy_name_id},{reasonid}," \
+              "{fc_analysis_method_name_id},{obs_name_id},{uom_name_id},{obs_value},'{flag}');".format(
+                sample_date=sample_date,
+                date_only=date_only,
+               sta_id=sta_id,
+               tide_name_id=tide_name_id,
+               strategy_name_id=strategy_name_id,
+               reasonid=reasonid,
+               fc_analysis_method_name_id=fc_analysis_method_name_id,
+               obs_name_id=obs_name_id,
+               uom_name_id=uom_name_id,
+               obs_value=obs_value,
+               flag=flag)
+
+        if sql_file is None:
+            db_cursor.execute(sql)
+        else:
+            sql_file.write(sql)
+            sql_file.write('\n')
+        return True
+    except Exception as e:
+        raise e
+    return False
+
 def get_growing_area(growing_areas, station_loc):
     growing_area = None
 
@@ -171,3 +247,66 @@ def get_growing_area(growing_areas, station_loc):
                 break
 
     return area_rec
+
+def add_classification_area(db_cursor,
+                            area_name,
+                            classification_name,
+                            is_current,
+                            start_date,
+                            end_data,
+                            comments):
+    try:
+        areaid = area_id(db_cursor, area_name)
+        classificationid = classification_id(db_cursor, classification_name)
+
+        sql = "INSERT INTO history_areas_classification (area_id,classification,current,start_date,end_date,comments)"\
+            "VALUES(%d,%d,%r,'%s','%s','%s')" % (areaid,classificationid,is_current,start_date,end_data,comments)
+        db_cursor.execute(sql)
+        return True
+
+    except Exception as e:
+        raise e
+    return False
+
+def build_lookup_id_map(db_recs):
+    lookup_map = {}
+    for rec in db_recs:
+        lookup_map[rec[1]] = rec[0]
+    return lookup_map
+
+class sample_saver(Process):
+    def __init__(self):
+        Process.__init__(self)
+        self._host = None
+        self._dbname = None
+        self._user = None
+        self._password = None
+        self._input_queue = Queue()
+        self._stop_event = Event()
+        return
+    def initialize(self, **kwargs):
+        self._host = kwargs['db_host'],
+        self._dbname = kwargs['db_name'],
+        self._user = kwargs['db_user'],
+        self._password = kwargs['db_pwd']
+    @property
+    def input_queue(self):
+        return self._input_queue
+    @property
+    def stop_event(self):
+        return self._stop_event
+    def run(self):
+        try:
+            db_conn = database_connect(type='postgres',
+                                       db_host=self._db_host,
+                                       db_name=self._db_name,
+                                       db_user=self._db_user,
+                                       db_pwd=self._db_pwd)
+
+            for sample in iter(self._input_queue.get, 'STOP'):
+                tot_file_time_start = time.time()
+                if logger:
+                    logger.debug("ID: %s processing file: %s" % (current_process().name, xmrg_filename))
+
+        except Exception as e:
+            traceback.print_exc()

@@ -5,7 +5,6 @@ import traceback
 from datetime import datetime, timedelta
 
 import requests
-from dbfread import DBF
 import time
 from db_functions import *
 '''
@@ -57,6 +56,8 @@ classification_map = {
 Utility to convert DHEC's lookup tables to a csv.
 '''
 def convert_dbf_files():
+    from dbfread import DBF
+
     wind_dbf = "WIND.DBF"
     tide_dbf = "TIDE.DBF"
     weather_dbf = "WEATHER.DBF"

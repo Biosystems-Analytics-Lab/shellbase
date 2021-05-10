@@ -115,7 +115,7 @@ def update_classification_areas(db_conn, endpoint):
         classifications = get_request(endpoint, filter_params)
         db_cursor = db_conn.cursor()
     except Exception as e:
-        traceback.print_exc()
+        print(traceback.format_exc())
     else:
         classification_features = classifications['features']
         for feature in classification_features:
@@ -154,20 +154,28 @@ def update_station_data(db_conn, stations_endpoint, data_endpoint):
                     e
                 except Exception as e:
                     print("ERROR adding area: {area}".format(area=station_rec['attributes']['SF_AREA']))
+                    print(traceback.format_exc())
                 areaid = area_id(db_cursor, station_rec['attributes']['SF_AREA'], 'SC')
 
             if sta_id is None:
-                add_station(db_cursor, station_rec['attributes']['STAT'], 'SC', areaid,
-                            station_rec['attributes']['LONGITUDE'], station_rec['attributes']['LATITUDE'],
-                            0, '', True)
-            # Save off the ids so we don't need to hit the database to look them up again when
+                try:
+                    add_station(db_cursor, station_rec['attributes']['STAT'], 'SC', areaid,
+                                station_rec['attributes']['LONGITUDE'], station_rec['attributes']['LATITUDE'],
+                                0, '', True)
+                except psycopg2.IntegrityError as e:
+                    print("ERROR: Station: {station} already exists, not adding.".format(station=station_rec['attributes']['STAT']))
+                    print(traceback.format_exc())
+                except Exception as e:
+                    print("ERROR adding station: {station}.".format(station=station_rec['attributes']['STAT']))
+                    print(traceback.format_exc())
+        # Save off the ids so we don't need to hit the database to look them up again when
             # we add the samples for each station below.
             if station_rec['attributes']['STAT'] not in station_ids:
                 station_ids[station_rec['attributes']['STAT']] = sta_id
 
         db_cursor.close()
     except Exception as e:
-        traceback.print_exc()
+        print(traceback.format_exc())
     else:
         db_cursor = db_conn.cursor()
         db_cursor.execute("SELECT id,name FROM lkp_fc_analysis_method")
@@ -221,11 +229,15 @@ def update_station_data(db_conn, stations_endpoint, data_endpoint):
             }
             try:
                 print("Querying station: {station}".format(station=station_name))
-                try:
-                    site_data = get_request(data_endpoint, data_filter_params)
-                except Exception as e:
-                    print("ERROR: Exception occured while querying station: {station}".format(station=station_name))
-                    traceback.print_exc()
+                station_query_count = 5
+                while station_query_count > 0:
+                    try:
+                        site_data = get_request(data_endpoint, data_filter_params)
+                        station_query_count = 0
+                    except Exception as e:
+                        print("ERROR: Exception occured while querying station: {station}".format(station=station_name))
+                        print(traceback.format_exc())
+                        station_query_count -= 1
                 else:
                     if site_data is not None:
                         print("Station: {station} query returned {rec_count} records.".format(station=station_name,
@@ -242,7 +254,7 @@ def update_station_data(db_conn, stations_endpoint, data_endpoint):
                                 print(
                                     "ERROR converting date: {date} time: {time}".format(date=data_rec['attributes']['SF_Date'],
                                                                                         time=data_rec['attributes']['SF_Time']))
-                                traceback.print_exc()
+                                print(traceback.format_exc())
                             else:
                                 try:
                                     tide_code_id = None
@@ -288,7 +300,7 @@ def update_station_data(db_conn, stations_endpoint, data_endpoint):
                                 except Exception as e:
                                     print("ERROR adding water temperature record datetime: {sample_datetime}" \
                                           .format(sample_datetime=date_time))
-                                    traceback.print_exc()
+                                    print(traceback.format_exc())
                                 try:
                                     air = float(data_rec['attributes']['Air'])
                                     print("Station: {station} {date_time} adding air temperature: {value}".format(
@@ -312,7 +324,7 @@ def update_station_data(db_conn, stations_endpoint, data_endpoint):
                                 except Exception as e:
                                     print("ERROR adding air temperature record datetime: {sample_datetime}" \
                                           .format(sample_datetime=date_time))
-                                    traceback.print_exc()
+                                    print(traceback.format_exc())
                                 try:
                                     salinity = float(data_rec['attributes']['Salinity'])
                                     print("Station: {station} {date_time} adding salinity: {value}".format(
@@ -336,7 +348,7 @@ def update_station_data(db_conn, stations_endpoint, data_endpoint):
                                 except Exception as e:
                                     print("ERROR adding salinity record datetime: {sample_datetime}" \
                                           .format(sample_datetime=date_time))
-                                    traceback.print_exc()
+                                    print(traceback.format_exc())
                                 try:
                                     wind = float(data_rec['attributes']['Wind'])
                                     print("Station: {station} {date_time} adding wind direction: {value}".format(
@@ -360,14 +372,14 @@ def update_station_data(db_conn, stations_endpoint, data_endpoint):
                                 except Exception as e:
                                     print("ERROR adding wind direction record datetime: {sample_datetime}" \
                                           .format(sample_datetime=date_time))
-                                    traceback.print_exc()
+                                    print(traceback.format_exc())
 
                                 db_conn.commit()
                         db_cursor.close()
                     else:
                         print("ERROR: Station: {station} query did not return any results".format(station=station_name))
             except Exception as e:
-                traceback.print_exc()
+                print(traceback.format_exc())
 
     return
 
@@ -387,7 +399,7 @@ def process_data(db_host, db_name, db_user, db_pwd,
         print("Successfully connected to database.")
     except Exception as e:
         print("ERROR connecting to database.")
-        traceback.print_exc()
+        print(traceback.format_exc())
     else:
         if update_stationdata:
             start_time = time.time()

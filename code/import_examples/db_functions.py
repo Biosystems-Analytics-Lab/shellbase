@@ -53,6 +53,7 @@ def add_strategy(db_cursor, strategy_name, description):
     try:
         sql = "INSERT INTO lkp_sample_strategy (id,name,description) VALUES(%d,'%s','%s')" % (0,strategy_name, description)
         db_cursor.execute(sql)
+        return True
     except Exception as e:
         raise e
     return False
@@ -69,6 +70,7 @@ def add_area(db_cursor, area_name, state):
     try:
         sql = "INSERT INTO areas (name,state) VALUES('%s','%s')" % (area_name, state)
         db_cursor.execute(sql)
+        return True
     except Exception as e:
         raise e
     return False

@@ -1,0 +1,2 @@
+Example command line:
+import_examples/ga_xls2db.py --ExcelFile=<XLS file to import> --DBHost=<db host address> --DBName=<db name> --DBUser=<db user> --DBPassword=<db password> --Shapefile=<shapefile to geolocate against> 

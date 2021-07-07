@@ -162,6 +162,7 @@ def update_station_data(db_conn, stations_endpoint, data_endpoint):
                     add_station(db_cursor, station_rec['attributes']['STAT'], 'SC', areaid,
                                 station_rec['attributes']['LONGITUDE'], station_rec['attributes']['LATITUDE'],
                                 0, '', True)
+                    db_conn.commit()
                 except psycopg2.IntegrityError as e:
                     print("ERROR: Station: {station} already exists, not adding.".format(station=station_rec['attributes']['STAT']))
                     print(traceback.format_exc())
@@ -277,6 +278,31 @@ def update_station_data(db_conn, stations_endpoint, data_endpoint):
                                 reason_id = reasons_id_map[reason]
                                 fc_analysis_id = fc_analysis_id_map[fc_analysis_method]
 
+                                try:
+                                    FCMPN = int(data_rec['attributes']['FCMPN'])
+                                    print("Station: {station} {date_time} adding FCMPN data: {value}".format(
+                                        station=station_name,
+                                        date_time=date_time,
+                                        value=FCMPN
+                                    ))
+
+                                    add_sample_with_ids(db_cursor,
+                                               stationid,
+                                               date_time, False,
+                                               obs_types_id_map['fc'], uom_types_id_map["cfu/100 mL"], FCMPN,
+                                               tide_code_id,
+                                               strategy_type_id,
+                                               reason_id,
+                                               fc_analysis_id,
+                                               flag)
+                                except psycopg2.IntegrityError:
+                                    print("Record already exists.")
+                                    db_conn.rollback()
+                                except Exception as e:
+                                    print("ERROR adding FCMPN record datetime: {sample_datetime}" \
+                                          .format(sample_datetime=date_time))
+                                    print(traceback.format_exc())
+                                '''
                                 # The TYPE field has the reason. R= routine and S = emergency sample
                                 try:
                                     water = float(data_rec['attributes']['Water'])
@@ -373,7 +399,7 @@ def update_station_data(db_conn, stations_endpoint, data_endpoint):
                                     print("ERROR adding wind direction record datetime: {sample_datetime}" \
                                           .format(sample_datetime=date_time))
                                     print(traceback.format_exc())
-
+                            '''
                                 db_conn.commit()
                         db_cursor.close()
                     else:

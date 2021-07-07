@@ -197,7 +197,7 @@ CREATE TABLE areas (
     
     name varchar(50),
     state char(2),
-    classification integer REFERENCES lkp_area_classification(id)
+    classification_id integer REFERENCES lkp_area_classification(id)
     
 );
 

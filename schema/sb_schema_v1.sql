@@ -334,7 +334,7 @@ CREATE UNIQUE INDEX i_samples ON samples USING btree (sample_datetime,station_id
 
 CREATE VIEW samples_wide AS 
 
-select A.sample_datetime,areas.name as area_name,A.station_id,stations.name as station_name,stations.state as station_state,A.value as fc,B.value as water_temperature,C.value as salinity,D.value as conductivity,E.value as DO,F.value as ph,G.value as wind_direction,H.value as air_temperature
+select A.sample_datetime,areas.name as area_name,A.station_id,stations.name as station_name,stations.sample_depth_type as sample_depth_type,stations.state as station_state,A.value as fc,B.value as water_temperature,C.value as salinity,D.value as conductivity,E.value as DO,F.value as ph,G.value as wind_direction,H.value as air_temperature
       from samples A
       
       left join samples B 

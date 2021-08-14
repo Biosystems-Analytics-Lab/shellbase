@@ -326,7 +326,7 @@ ALTER TABLE ONLY samples ALTER COLUMN id SET DEFAULT nextval('samples_id_seq'::r
 
 CREATE UNIQUE INDEX i_areas ON areas USING btree (state,name);
 CREATE UNIQUE INDEX i_stations ON stations USING btree (state,area_id,name);
-CREATE UNIQUE INDEX i_samples ON samples USING btree (sample_datetime,station_id,type);
+CREATE UNIQUE INDEX i_samples ON samples USING btree (sample_datetime,station_id,type,sample_depth_type);
 
 -- samples_wide view(6 current observation types, but can be extended with additional joins as needed for new observations types) allows for a much simpler query for related sample observations
 -- for example

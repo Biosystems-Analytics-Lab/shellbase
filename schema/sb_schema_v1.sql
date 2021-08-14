@@ -274,9 +274,6 @@ CREATE TABLE stations (
     area_id integer REFERENCES areas(id),
     lat double precision,
     long double precision,
-    
-    sample_depth_type char(2),
-    sample_depth double precision,
 
     active boolean
     
@@ -311,7 +308,10 @@ CREATE TABLE samples (
     type integer REFERENCES lkp_sample_type(id),
     units integer REFERENCES lkp_sample_units(id),
     value double precision,
-    flag varchar(50)
+    flag varchar(50),
+
+    sample_depth_type char(2),
+    sample_depth double precision
     
 );
 

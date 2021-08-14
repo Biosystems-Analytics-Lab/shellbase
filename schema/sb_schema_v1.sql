@@ -333,14 +333,14 @@ CREATE UNIQUE INDEX i_samples ON samples USING btree (sample_datetime,station_id
 -- select * from samples_wide where fc > 100 limit 10;
 
 CREATE VIEW samples_wide AS 
-
-select A.sample_datetime,areas.name as area_name,A.station_id,stations.name as station_name,stations.sample_depth_type as sample_depth_type,stations.state as station_state,A.value as fc,B.value as water_temperature,C.value as salinity,D.value as conductivity,E.value as DO,F.value as ph,G.value as wind_direction,H.value as air_temperature
+select A.sample_datetime,areas.name as area_name,stations.name as station_name,stations.state as station_state,stations.active as station_active,A.value as fc,B.value as water_temperature,I.value as bottom_water_temperature,C.value as salinity,J.value as bottom_salinity,D.value as conductivity,E.value as DO,K.value as bottom_DO,F.value as ph,G.value as wind_direction,H.value as air_temperature
       from samples A
       
       left join samples B 
         on A.sample_datetime = B.sample_datetime
         and A.station_id = B.station_id
         and B.type = 2
+	and B.sample_depth_type is null
       
       left join samples C 
         on A.sample_datetime = C.sample_datetime
@@ -372,12 +372,88 @@ select A.sample_datetime,areas.name as area_name,A.station_id,stations.name as s
         and A.station_id = H.station_id
         and H.type = 8
 
+      left join samples I 
+        on A.sample_datetime = I.sample_datetime
+        and A.station_id = I.station_id
+        and I.type = 2
+	and I.sample_depth_type = 'B'
+
+      left join samples J 
+        on A.sample_datetime = J.sample_datetime
+        and A.station_id = J.station_id
+        and J.type = 3
+	and J.sample_depth_type = 'B'
+
+      left join samples K 
+        on A.sample_datetime = K.sample_datetime
+        and A.station_id = K.station_id
+        and K.type = 5
+	and K.sample_depth_type = 'B'
+
       --add additional left joins here(samples G,...) for other measurement types
       
       --join our other main tables stations and areas - areas->stations->samples
 
       left join stations
         on stations.id = A.station_id
+
+      left join areas
+        on areas.id = stations.area_id
+      
+      where A.type = 1
+        
+      order by sample_datetime;
+
+CREATE VIEW samples_wide_FL AS 
+select A.sample_datetime,areas.name as area_name,stations.name as station_name,stations.state as station_state,stations.active as station_active,A.value as fc,B.value as water_temperature,I.value as bottom_water_temperature,C.value as salinity,J.value as bottom_salinity,E.value as DO,K.value as bottom_DO,F.value as ph
+      from samples A
+      
+      left join samples B 
+        on A.sample_datetime = B.sample_datetime
+        and A.station_id = B.station_id
+        and B.type = 2
+	and B.sample_depth_type is null
+      
+      left join samples C 
+        on A.sample_datetime = C.sample_datetime
+        and A.station_id = C.station_id
+        and C.type = 3
+
+      left join samples E 
+        on A.sample_datetime = E.sample_datetime
+        and A.station_id = E.station_id
+        and E.type = 5
+
+      left join samples F 
+        on A.sample_datetime = F.sample_datetime
+        and A.station_id = F.station_id
+        and F.type = 6
+
+      left join samples I 
+        on A.sample_datetime = I.sample_datetime
+        and A.station_id = I.station_id
+        and I.type = 2
+	and I.sample_depth_type = 'B'
+
+      left join samples J 
+        on A.sample_datetime = J.sample_datetime
+        and A.station_id = J.station_id
+        and J.type = 3
+	and J.sample_depth_type = 'B'
+
+      left join samples K 
+        on A.sample_datetime = K.sample_datetime
+        and A.station_id = K.station_id
+        and K.type = 5
+	and K.sample_depth_type = 'B'
+
+      --add additional left joins here(samples G,...) for other measurement types
+      
+      --join our other main tables stations and areas - areas->stations->samples
+
+      left join stations
+        on stations.id = A.station_id
+	and stations.state = 'FL'
 
       left join areas
         on areas.id = stations.area_id

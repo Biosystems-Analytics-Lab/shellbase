@@ -122,7 +122,7 @@ def update_classification_areas(db_conn, endpoint):
             feature
     return
 
-def update_station_data(db_conn, stations_endpoint, data_endpoint):
+def update_station_data(db_conn, stations_endpoint, data_endpoint, update_existing):
     station_ids = {}
     try:
         filter_params = {
@@ -298,6 +298,28 @@ def update_station_data(db_conn, stations_endpoint, data_endpoint):
                                 except psycopg2.IntegrityError:
                                     print("Record already exists.")
                                     db_conn.rollback()
+                                    if update_existing:
+                                        print("Updating station: {station} {date_time} adding FCMPN data: {value}".format(
+                                            station=station_name,
+                                            date_time=date_time,
+                                            value=FCMPN
+                                        ))
+                                        try:
+                                            update_sample_with_ids(db_cursor,
+                                               stationid,
+                                               date_time, False,
+                                               obs_types_id_map['fc'], uom_types_id_map["cfu/100 mL"],
+                                                FCMPN,
+                                               tide_code_id,
+                                               strategy_type_id,
+                                               reason_id,
+                                               fc_analysis_id,
+                                               flag)
+                                        except Exception as e:
+                                            print("ERROR updating FCMPN record datetime: {sample_datetime}" \
+                                                  .format(sample_datetime=date_time))
+                                            print(traceback.format_exc())
+
                                 except Exception as e:
                                     print("ERROR adding FCMPN record datetime: {sample_datetime}" \
                                           .format(sample_datetime=date_time))
@@ -314,7 +336,9 @@ def update_station_data(db_conn, stations_endpoint, data_endpoint):
                                     add_sample_with_ids(db_cursor,
                                                stationid,
                                                date_time, False,
-                                               obs_types_id_map['water temperature'], uom_types_id_map["C"], water,
+                                               obs_types_id_map['water temperature'],
+                                               uom_types_id_map["C"],
+                                               water,
                                                tide_code_id,
                                                strategy_type_id,
                                                reason_id,
@@ -323,6 +347,28 @@ def update_station_data(db_conn, stations_endpoint, data_endpoint):
                                 except psycopg2.IntegrityError:
                                     print("Record already exists.")
                                     db_conn.rollback()
+                                    if update_existing:
+                                        print("Updating station: {station} {date_time} adding water temperature: {value}".format(
+                                            station=station_name,
+                                            date_time=date_time,
+                                            value=water))
+                                        try:
+                                            update_sample_with_ids(db_cursor,
+                                                                stationid,
+                                                                date_time, False,
+                                                                obs_types_id_map['water temperature'],
+                                                                uom_types_id_map["C"],
+                                                                water,
+                                                                tide_code_id,
+                                                                strategy_type_id,
+                                                                reason_id,
+                                                                fc_analysis_id,
+                                                                flag)
+                                        except Exception as e:
+                                            print("ERROR updating water temperature record datetime: {sample_datetime}" \
+                                                  .format(sample_datetime=date_time))
+                                            print(traceback.format_exc())
+
                                 except Exception as e:
                                     print("ERROR adding water temperature record datetime: {sample_datetime}" \
                                           .format(sample_datetime=date_time))
@@ -338,7 +384,9 @@ def update_station_data(db_conn, stations_endpoint, data_endpoint):
                                     add_sample_with_ids(db_cursor,
                                                stationid,
                                                date_time, False,
-                                               obs_types_id_map['air temperature'], uom_types_id_map["C"], air,
+                                               obs_types_id_map['air temperature'],
+                                               uom_types_id_map["C"],
+                                               air,
                                                tide_code_id,
                                                strategy_type_id,
                                                reason_id,
@@ -347,6 +395,29 @@ def update_station_data(db_conn, stations_endpoint, data_endpoint):
                                 except psycopg2.IntegrityError:
                                     print("Record already exists.")
                                     db_conn.rollback()
+                                    if update_existing:
+                                        print("Updating station: {station} {date_time} adding air temperature: {value}".format(
+                                            station=station_name,
+                                            date_time=date_time,
+                                            value=air
+                                        ))
+                                        try:
+                                            update_sample_with_ids(db_cursor,
+                                                                stationid,
+                                                                date_time, False,
+                                                                obs_types_id_map['air temperature'],
+                                                                uom_types_id_map["C"],
+                                                                air,
+                                                                tide_code_id,
+                                                                strategy_type_id,
+                                                                reason_id,
+                                                                fc_analysis_id,
+                                                                flag)
+                                        except Exception as e:
+                                            print("ERROR updating air temperature record datetime: {sample_datetime}" \
+                                                  .format(sample_datetime=date_time))
+                                            print(traceback.format_exc())
+
                                 except Exception as e:
                                     print("ERROR adding air temperature record datetime: {sample_datetime}" \
                                           .format(sample_datetime=date_time))
@@ -362,7 +433,9 @@ def update_station_data(db_conn, stations_endpoint, data_endpoint):
                                     add_sample_with_ids(db_cursor,
                                                stationid,
                                                date_time, False,
-                                               obs_types_id_map['salinity'], uom_types_id_map["ppt"], salinity,
+                                               obs_types_id_map['salinity'],
+                                               uom_types_id_map["ppt"],
+                                               salinity,
                                                tide_code_id,
                                                strategy_type_id,
                                                reason_id,
@@ -371,6 +444,29 @@ def update_station_data(db_conn, stations_endpoint, data_endpoint):
                                 except psycopg2.IntegrityError:
                                     print("Record already exists.")
                                     db_conn.rollback()
+                                    if update_existing:
+                                        print("Updating station: {station} {date_time} adding salinity: {value}".format(
+                                            station=station_name,
+                                            date_time=date_time,
+                                            value=salinity
+                                        ))
+                                        try:
+                                            update_sample_with_ids(db_cursor,
+                                                                stationid,
+                                                                date_time, False,
+                                                                obs_types_id_map['salinity'],
+                                                                uom_types_id_map["ppt"],
+                                                                salinity,
+                                                                tide_code_id,
+                                                                strategy_type_id,
+                                                                reason_id,
+                                                                fc_analysis_id,
+                                                                flag)
+                                        except Exception as e:
+                                            print("ERROR updating salinity record datetime: {sample_datetime}" \
+                                                  .format(sample_datetime=date_time))
+                                            print(traceback.format_exc())
+
                                 except Exception as e:
                                     print("ERROR adding salinity record datetime: {sample_datetime}" \
                                           .format(sample_datetime=date_time))
@@ -386,7 +482,9 @@ def update_station_data(db_conn, stations_endpoint, data_endpoint):
                                     add_sample_with_ids(db_cursor,
                                                stationid,
                                                date_time, False,
-                                               obs_types_id_map['wind direction'], uom_types_id_map["degrees"], wind,
+                                               obs_types_id_map['wind direction'],
+                                               uom_types_id_map["degrees"],
+                                               wind,
                                                tide_code_id,
                                                strategy_type_id,
                                                reason_id,
@@ -395,6 +493,29 @@ def update_station_data(db_conn, stations_endpoint, data_endpoint):
                                 except psycopg2.IntegrityError:
                                     print("Record already exists.")
                                     db_conn.rollback()
+                                    if update_existing:
+                                        print("Updating station: {station} {date_time} adding wind direction: {value}".format(
+                                            station=station_name,
+                                            date_time=date_time,
+                                            value=wind
+                                        ))
+                                        try:
+                                            update_sample_with_ids(db_cursor,
+                                                                stationid,
+                                                                date_time, False,
+                                                                obs_types_id_map['wind direction'],
+                                                                uom_types_id_map["degrees"],
+                                                                wind,
+                                                                tide_code_id,
+                                                                strategy_type_id,
+                                                                reason_id,
+                                                                fc_analysis_id,
+                                                                flag)
+                                        except Exception as e:
+                                            print("ERROR updating wind direction record datetime: {sample_datetime}" \
+                                                  .format(sample_datetime=date_time))
+                                            print(traceback.format_exc())
+
                                 except Exception as e:
                                     print("ERROR adding wind direction record datetime: {sample_datetime}" \
                                           .format(sample_datetime=date_time))
@@ -414,7 +535,8 @@ def process_data(db_host, db_name, db_user, db_pwd,
                  stations_endpoint, data_endpoint,classification_endpoint,
                  stations_csv_file,
                  update_stationdata,
-                 update_classification):
+                 update_classification,
+                 update_existing):
     try:
         db_conn = database_connect(type='postgres',
                                    db_host=db_host,
@@ -429,7 +551,7 @@ def process_data(db_host, db_name, db_user, db_pwd,
     else:
         if update_stationdata:
             start_time = time.time()
-            update_station_data(db_conn, stations_endpoint, data_endpoint)
+            update_station_data(db_conn, stations_endpoint, data_endpoint, update_existing)
             end_time = time.time()
             print("update_station_data finished in %f seconds" % (end_time-start_time))
         if update_classification:
@@ -467,6 +589,8 @@ def main():
                       help="")
     parser.add_option("--UpdateStationData", dest="update_station_data", action="store_true",
                       help="")
+    parser.add_option("--UpdateExisting", dest="update_existing", action="store_true", default=False,
+                      help="If the record already exists(IntegrityError), update it if. Currently just applies to samples.")
 
 
 
@@ -486,7 +610,8 @@ def main():
                  options.esri_harvest_classification_endpoint,
                  None,
                  options.update_station_data,
-                 options.update_classification_areas)
+                 options.update_classification_areas,
+                 options.update_existing)
 
     return
 

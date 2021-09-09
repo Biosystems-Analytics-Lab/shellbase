@@ -236,6 +236,50 @@ def add_sample_with_ids(db_cursor,
         raise e
     return False
 
+def update_sample_with_ids(db_cursor,
+               sta_id,
+               sample_date,
+               date_only,
+               obs_name_id,
+               uom_name_id,
+               obs_value,
+               tide_name_id,
+               strategy_name_id,
+               reasonid,
+               fc_analysis_method_name_id,
+               flag,
+               sql_file=None):
+    try:
+        if uom_name_id is None:
+            uom_name_id = 'NULL'
+        if tide_name_id is None:
+            tide_name_id = 'NULL'
+        sql = "UPDATE samples "\
+            "SET tide={tide_name_id},strategy={strategy_name_id},reason={reasonid}," \
+              "fc_analysis_method={fc_analysis_method_name_id},units={uom_name_id},value={obs_value},flag='{flag}' "\
+              "WHERE sample_datetime='{sample_date}' AND station_id={sta_id} AND type={obs_name_id};".format(
+               tide_name_id=tide_name_id,
+               strategy_name_id=strategy_name_id,
+               reasonid=reasonid,
+               fc_analysis_method_name_id=fc_analysis_method_name_id,
+               uom_name_id=uom_name_id,
+               obs_value=obs_value,
+               flag=flag,
+                sample_date=sample_date,
+                sta_id=sta_id,
+                obs_name_id=obs_name_id
+            )
+
+        if sql_file is None:
+            db_cursor.execute(sql)
+        else:
+            sql_file.write(sql)
+            sql_file.write('\n')
+        return True
+    except Exception as e:
+        raise e
+    return False
+
 def get_growing_area(growing_areas, station_loc):
     growing_area = None
 

@@ -302,7 +302,7 @@ def update_station_data(db_conn, stations_endpoint, data_endpoint):
                                     print("ERROR adding FCMPN record datetime: {sample_datetime}" \
                                           .format(sample_datetime=date_time))
                                     print(traceback.format_exc())
-                                '''
+
                                 # The TYPE field has the reason. R= routine and S = emergency sample
                                 try:
                                     water = float(data_rec['attributes']['Water'])
@@ -338,7 +338,7 @@ def update_station_data(db_conn, stations_endpoint, data_endpoint):
                                     add_sample_with_ids(db_cursor,
                                                stationid,
                                                date_time, False,
-                                               obs_types_id_map['air temperature'], uom_types_id_map["C"], water,
+                                               obs_types_id_map['air temperature'], uom_types_id_map["C"], air,
                                                tide_code_id,
                                                strategy_type_id,
                                                reason_id,
@@ -362,7 +362,7 @@ def update_station_data(db_conn, stations_endpoint, data_endpoint):
                                     add_sample_with_ids(db_cursor,
                                                stationid,
                                                date_time, False,
-                                               obs_types_id_map['salinity'], uom_types_id_map["ppt"], water,
+                                               obs_types_id_map['salinity'], uom_types_id_map["ppt"], salinity,
                                                tide_code_id,
                                                strategy_type_id,
                                                reason_id,
@@ -399,7 +399,7 @@ def update_station_data(db_conn, stations_endpoint, data_endpoint):
                                     print("ERROR adding wind direction record datetime: {sample_datetime}" \
                                           .format(sample_datetime=date_time))
                                     print(traceback.format_exc())
-                            '''
+
                                 db_conn.commit()
                         db_cursor.close()
                     else:
@@ -467,6 +467,7 @@ def main():
                       help="")
     parser.add_option("--UpdateStationData", dest="update_station_data", action="store_true",
                       help="")
+
 
 
     (options, args) = parser.parse_args()

@@ -277,7 +277,8 @@ def update_station_data(db_conn, stations_endpoint, data_endpoint, update_existi
                                 stationid = station_ids[station_name]
                                 reason_id = reasons_id_map[reason]
                                 fc_analysis_id = fc_analysis_id_map[fc_analysis_method]
-
+                                if station_name == '17-22B':
+                                    stationid
                                 try:
                                     FCMPN = int(data_rec['attributes']['FCMPN'])
                                     print("Station: {station} {date_time} adding FCMPN data: {value}".format(
@@ -315,6 +316,7 @@ def update_station_data(db_conn, stations_endpoint, data_endpoint, update_existi
                                                reason_id,
                                                fc_analysis_id,
                                                flag)
+                                            db_conn.commit()
                                         except Exception as e:
                                             print("ERROR updating FCMPN record datetime: {sample_datetime}" \
                                                   .format(sample_datetime=date_time))
@@ -364,6 +366,7 @@ def update_station_data(db_conn, stations_endpoint, data_endpoint, update_existi
                                                                 reason_id,
                                                                 fc_analysis_id,
                                                                 flag)
+                                            db_conn.commit()
                                         except Exception as e:
                                             print("ERROR updating water temperature record datetime: {sample_datetime}" \
                                                   .format(sample_datetime=date_time))
@@ -395,6 +398,7 @@ def update_station_data(db_conn, stations_endpoint, data_endpoint, update_existi
                                 except psycopg2.IntegrityError:
                                     print("Record already exists.")
                                     db_conn.rollback()
+
                                     if update_existing:
                                         print("Updating station: {station} {date_time} adding air temperature: {value}".format(
                                             station=station_name,
@@ -413,6 +417,7 @@ def update_station_data(db_conn, stations_endpoint, data_endpoint, update_existi
                                                                 reason_id,
                                                                 fc_analysis_id,
                                                                 flag)
+                                            db_conn.commit()
                                         except Exception as e:
                                             print("ERROR updating air temperature record datetime: {sample_datetime}" \
                                                   .format(sample_datetime=date_time))
@@ -462,6 +467,7 @@ def update_station_data(db_conn, stations_endpoint, data_endpoint, update_existi
                                                                 reason_id,
                                                                 fc_analysis_id,
                                                                 flag)
+                                            db_conn.commit()
                                         except Exception as e:
                                             print("ERROR updating salinity record datetime: {sample_datetime}" \
                                                   .format(sample_datetime=date_time))
@@ -511,6 +517,7 @@ def update_station_data(db_conn, stations_endpoint, data_endpoint, update_existi
                                                                 reason_id,
                                                                 fc_analysis_id,
                                                                 flag)
+                                            db_conn.commit()
                                         except Exception as e:
                                             print("ERROR updating wind direction record datetime: {sample_datetime}" \
                                                   .format(sample_datetime=date_time))

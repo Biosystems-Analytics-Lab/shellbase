@@ -277,8 +277,6 @@ def update_station_data(db_conn, stations_endpoint, data_endpoint, update_existi
                                 stationid = station_ids[station_name]
                                 reason_id = reasons_id_map[reason]
                                 fc_analysis_id = fc_analysis_id_map[fc_analysis_method]
-                                if station_name == '17-22B':
-                                    stationid
                                 try:
                                     FCMPN = int(data_rec['attributes']['FCMPN'])
                                     print("Station: {station} {date_time} adding FCMPN data: {value}".format(

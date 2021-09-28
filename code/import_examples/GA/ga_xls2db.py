@@ -2,8 +2,10 @@
 Requirements:
     pandas
 Command line:
-    python ga_xls2db.py --ExcelFile=<path to the datafile>
-
+    ga_xls2db.py --ExcelFile=<path to the Excel file to import>
+                --DBHost=<database server ip address> --DBName=<database name> --DBUser=<database user> --DBPassword=<db user password>
+                --Shapefile=<path to the shapefile to use for determining from the station GPS what area it is in>
+                --StationCSV=<output path to write a stations file>
 '''
 import sys
 import optparse

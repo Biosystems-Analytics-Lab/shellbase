@@ -1,4 +1,13 @@
 '''
+Sample command line:
+python sc_esri_to_db.py --ESRIDataEndpoint=https://gis.dhec.sc.gov/arcgis/rest/services/environment/Shellfish_Closures_Background/MapServer/4/query
+                        --ESRISitesEndpoint=https://gis.dhec.sc.gov/arcgis/rest/services/environment/Shellfish_Closures_Background/MapServer/0/query
+                        --ESRIHarvesClassificationsEndpoint=https://gis.dhec.sc.gov/arcgis/rest/services/environment/Shellfish_Closures_Background/MapServer/2/query
+                        --UpdateStationData
+                        --StartYear=1990 --EndYear=2021
+                        --DBHost=<database server ip address> --DBName=<database name> --DBUser=<database user> --DBPassword=<db user password>
+
+Unfortuntaley there is no gaurantee the endpoints will remain stable.
 '''
 import optparse
 import traceback

@@ -375,6 +375,7 @@ def parse_worksheet(xls_filename, db_conn, growing_areas, stations_csv_file, sam
                           .format(row_ndx=row_ndx, sample_datetime=sample.sample_datetime))
                     traceback.print_exc()
                 db_conn.commit()
+                print("Processed row: {row}.".format(row=row_ndx))
             except Exception as e:
                 print("Error on row: %d" % (row_ndx))
                 traceback.print_exc()

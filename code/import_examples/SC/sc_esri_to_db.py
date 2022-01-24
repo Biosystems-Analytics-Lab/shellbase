@@ -131,7 +131,7 @@ def update_classification_areas(db_conn, endpoint):
             feature
     return
 
-def update_station_data(db_conn, stations_endpoint, data_endpoint, update_existing):
+def update_station_data(db_conn, stations_endpoint, data_endpoint, update_existing, start_year, end_year):
     station_ids = {}
     try:
         filter_params = {
@@ -229,8 +229,8 @@ def update_station_data(db_conn, stations_endpoint, data_endpoint, update_existi
             '''
             data_filter_params = {
                 'f': 'json',
-                'where': "(Station = '{station}') AND(1 = 1)" \
-                    .format(station=station_name),
+                'where': "(Station = '{station}') AND ProjectYear >= '{start_year}' AND ProjectYear < '{end_year}' AND(1 = 1)" \
+                    .format(station=station_name, start_year=start_year, end_year=end_year),
                 'returnGeometry': False,
                 'spatialRel': "esriSpatialRelIntersects",
                 'outFields': "*",
@@ -565,7 +565,7 @@ def process_data(db_host, db_name, db_user, db_pwd,
     else:
         if update_stationdata:
             start_time = time.time()
-            update_station_data(db_conn, stations_endpoint, data_endpoint, update_existing)
+            update_station_data(db_conn, stations_endpoint, data_endpoint, update_existing, start_year, end_year)
             end_time = time.time()
             print("update_station_data finished in %f seconds" % (end_time-start_time))
         if update_classification:
